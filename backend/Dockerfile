@@ -1,24 +1,19 @@
-# Use uma imagem base do Node.js leve e oficial
-FROM node:20-alpine
+# Alterado de "node:20-alpine" para a versão do ECR Public
+FROM public.ecr.aws/docker/library/node:20-alpine
 
-# Defina o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copie os ficheiros de manifesto de pacotes e instale as dependências
-# Copiar package-lock.json garante instalações consistentes
+# Copia os ficheiros de manifesto PRIMEIRO para otimizar o cache
 COPY package*.json ./
 
-# Instale TODAS as dependências, incluindo as de desenvolvimento como o nodemon,
-# que são necessárias para o script "dev"
+# Instala dependências
 RUN npm install
 
-# Copie o resto do código da aplicação para o diretório de trabalho
+# Copia o resto do código
 COPY . .
 
-# A porta que a aplicação vai expor.
-# O mapeamento real é feito no docker-compose.yml
+# Expõe a porta que a nossa API vai usar (definida no .env)
 EXPOSE 5200
 
-# O comando para iniciar a aplicação é definido no docker-compose.yml
-# para permitir flexibilidade (ex: usar 'npm run dev' em dev e 'npm start' em prod).
-# CMD ["npm", "run", "dev"]
+# Comando para correr a aplicação em modo de desenvolvimento com hot-reload
+CMD [ "npm", "run", "dev" ]
