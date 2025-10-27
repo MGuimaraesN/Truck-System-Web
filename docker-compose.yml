@@ -1,0 +1,43 @@
+# A linha "version" foi removida (obsoleta)
+services:
+  frontend:
+    # Usamos uma imagem Node padrão para correr o Vite
+    image: node:20-alpine
+    working_dir: /app
+    ports:
+      # Expomos o frontend (Vite) na porta 4200
+      - "4200:4200"
+    volumes:
+      # Mapeia o código do frontend para o /app
+      - ./frontend:/app
+      # Volume anónimo para node_modules (boa prática)
+      - /app/node_modules
+    command: >
+      sh -c "npm install && npm run dev"
+    restart: always
+    # O "depends_on" garante que a API sobe primeiro
+    depends_on:
+      - api-node
+
+  api-node:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      # Expomos a API na porta 5200
+      - "5200:5200"
+    volumes:
+      # Mapeia o código do backend para o /app (permite hot-reloading)
+      - ./backend:/app
+      # Volume nomeado para persistir a base de dados SQLite
+      - sqlite_db:/app/database
+      # Volume anónimo para node_modules
+      - /app/node_modules
+    environment:
+      - PORT=5200
+    restart: always
+
+# Volume nomeado para a nossa base de dados SQLite
+volumes:
+  sqlite_db:
