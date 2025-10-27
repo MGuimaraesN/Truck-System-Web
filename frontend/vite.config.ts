@@ -11,7 +11,7 @@ export default defineConfig({
       usePolling: true // Essencial para o hot-reload funcionar via Docker
     },
 
-    // CORREÇÃO HMR: Informa o cliente como se conectar ao websocket
+    // Bloco HMR adicionado para corrigir o erro de websocket no Docker
     hmr: {
       clientPort: 4200,
     },
@@ -19,12 +19,10 @@ export default defineConfig({
     proxy: {
       // Redireciona qualquer chamada /api para o nosso serviço de backend
       '/api': {
-        target: 'http://api-node:5200', // Aponta para o NOME DO SERVIÇO Docker
+        target: 'http://api-node:5200',
         changeOrigin: true,
-
-        // CORREÇÃO 404: A linha 'rewrite' foi REMOVIDA.
-        // O backend espera o caminho completo /api/auth/login
-      }
-    }
+        // A linha 'rewrite' foi removida para corrigir o erro 404
+      },
+    },
   },
 })
