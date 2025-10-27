@@ -1,43 +1,39 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from './store/auth.store';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import useAuthStore from './store/auth';
+import LoginPage from './pages/Login';
+import DashboardPage from './pages/Dashboard';
+import VehicleDetailsPage from './pages/VehicleDetails';
 
-// Layouts
-import AuthLayout from './components/layouts/AuthLayout';
-import ProtectedLayout from './components/layouts/ProtectedLayout';
-
-// Pages
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+const PrivateRoute = ({ children }: { children: JSX.Element }) => {
+  const { token } = useAuthStore();
+  return token ? children : <Navigate to="/login" />;
+};
 
 function App() {
-  const { isAuthenticated } = useAuthStore();
-
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        {/* Rota Raiz: Redireciona com base no estado de autenticação */}
+        <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/"
-          element={isAuthenticated ? <Navigate to="/app/dashboard" replace /> : <Navigate to="/login" replace />}
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <DashboardPage />
+            </PrivateRoute>
+          }
         />
-
-        {/* Rotas Públicas (Autenticação) */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-        </Route>
-
-        {/* Rotas Protegidas (Aplicação Principal) */}
-        <Route path="/app" element={<ProtectedLayout />}>
-          <Route path="dashboard" element={<DashboardPage />} />
-          {/* Outras rotas da aplicação virão aqui (ex: receitas, despesas) */}
-        </Route>
-
-        {/* Rota Not Found */}
-        <Route path="*" element={<h1>404: Página Não Encontrada</h1>} />
+        <Route
+          path="/veiculo/:id"
+          element={
+            <PrivateRoute>
+              <VehicleDetailsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 

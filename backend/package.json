@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "frota-sapiens-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for Frota Sapiens fleet management system.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -11,18 +11,17 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
+    "@prisma/client": "^5.12.1",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "knex": "^3.1.0",
-    "sqlite3": "^5.1.7",
-    "zod": "^4.1.12"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.0",
+    "prisma": "^5.12.1"
   }
 }
