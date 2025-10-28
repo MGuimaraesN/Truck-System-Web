@@ -1,29 +1,51 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  backend:
-    build:
-      context: ./backend
-    ports:
-      - "5000:5000" # Expõe a API
+  api:
+    build: ./apps/api
+    env_file: .env
     environment:
-      # Aponta para o arquivo SQLite que será salvo no volume
-      - DATABASE_URL=file:/app/prisma/data.db
-      - JWT_SECRET=SEU_SEGREDO_JWT_AQUI
-    volumes:
-      # Monta o volume 'sqlite_data' no diretório onde o Prisma
-      # irá criar e acessar o arquivo 'data.db'.
-      # Isso garante que o banco de dados persista.
-      - sqlite_data:/app/prisma
-  frontend:
-    build:
-      context: ./frontend
+      - DATABASE_URL=${DATABASE_URL:-file:/data/dev.db}
+      - JWT_SECRET=${JWT_SECRET:-change-me}
+      - PORT=3000
     ports:
-      - "80:80" # Expõe o React (servido pelo Nginx)
+      - "3000:3000"
+    volumes:
+      - sqlite_data:/data
+      - ./data/input:/data/input
+    depends_on: []
+    profiles: ["sqlite"]
+
+  web:
+    build: ./apps/web
+    ports:
+      - "5173:80"
     depends_on:
-      # O frontend só inicia após o backend estar pronto
-      - backend
+      - api
+
+  worker:
+    build: ./apps/worker
+    env_file: .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-file:/data/dev.db}
+      - JWT_SECRET=${JWT_SECRET:-change-me}
+      - API_URL=http://api:3000/api
+      - WORKER_EMAIL=${WORKER_EMAIL:-admin@frota.local}
+      - WORKER_PASSWORD=${WORKER_PASSWORD:-password123}
+    volumes:
+      - sqlite_data:/data
+      - ./data/input:/data/input
+    depends_on:
+      - api
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - web
 
 volumes:
-  # Define o volume nomeado para persistir o arquivo do SQLite
   sqlite_data:

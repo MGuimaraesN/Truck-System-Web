@@ -1,0 +1,322 @@
+// ---------------------------------------------------------
+// Prisma Schema - Frota / Truck System
+// ---------------------------------------------------------
+// Provider atual: SQLite (ajuste se necessário)
+// IMPORTANTE: revise comentários "CSV:" para mapeamento
+// ---------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum TransacaoStatus {
+  PENDENTE
+  PAGO
+  RECEBIDO
+}
+
+enum PneuStatus {
+  NOVO
+  EM_USO
+  REFORMADO
+  DESCARTADO
+}
+
+enum MovimentacaoPneuTipo {
+  INSTALACAO
+  RODIZIO
+  REFORMA
+  RETORNO_REFORMA
+  RETIRADA
+  DESCARTE
+}
+
+enum PosicaoPneu {
+  DIANTEIRO_ESQ
+  DIANTEIRO_DIR
+  TRASEIRO_INT_ESQ
+  TRASEIRO_INT_DIR
+  TRASEIRO_EXT_ESQ
+  TRASEIRO_EXT_DIR
+  SOBRESSALENTE
+}
+
+enum DocumentoTipo {
+  IPVA
+  SEGURO
+  ANTT
+  LICENCIAMENTO
+  TACOGRAFO
+  VISTORIA
+  MULTA
+  OUTRO
+}
+
+enum Role {
+  admin
+  gestor
+  financeiro
+  motorista
+}
+
+model Veiculo {
+  id             Int                 @id @default(autoincrement())
+  placa          String?             @unique
+  descricao      String?
+  ativo          Boolean             @default(true)
+
+  fretes         Frete[]
+  abastecimentos Abastecimento[]
+  manutencoes    Manutencao[]
+  despesas       Despesa[]
+  viagens        Viagem[]
+  documentos     Documento[]
+  movPneus       MovimentacaoPneu[]
+
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  @@index([ativo])
+}
+
+model Frete {
+  id             Int              @id @default(autoincrement())
+  veiculoId      Int
+  veiculo        Veiculo          @relation(fields: [veiculoId], references: [id])
+
+  motoristaId    Int?
+  motorista      Motorista?       @relation(fields: [motoristaId], references: [id], onDelete: SetNull)
+
+  viagemId       Int?
+  viagem         Viagem?          @relation(fields: [viagemId], references: [id], onDelete: SetNull)
+
+  data           DateTime
+  descricao      String?
+  origem         String?
+  destino        String?
+
+  taxaValor      Decimal?
+
+  status         TransacaoStatus  @default(PENDENTE)
+  dataPagamento  DateTime?
+  meioPagamento  String?
+
+  valorTotal     Decimal?
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  hashImportacao String?          @unique
+
+  @@index([veiculoId, data])
+  @@index([motoristaId, data])
+  @@index([viagemId])
+  @@index([status])
+}
+
+model Abastecimento {
+  id             Int              @id @default(autoincrement())
+  veiculoId      Int
+  veiculo        Veiculo          @relation(fields: [veiculoId], references: [id])
+
+  motoristaId    Int?
+  motorista      Motorista?       @relation(fields: [motoristaId], references: [id], onDelete: SetNull)
+
+  viagemId       Int?
+  viagem         Viagem?          @relation(fields: [viagemId], references: [id], onDelete: SetNull)
+
+  data           DateTime
+  posto          String?
+  litros         Decimal
+  valorUnitario  Decimal?
+  valorTotal     Decimal?
+
+  kmAnterior     Int?
+  kmAtual        Int
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  hashImportacao String?          @unique
+
+  @@index([veiculoId, data])
+  @@index([motoristaId, data])
+  @@index([viagemId])
+}
+
+model Manutencao {
+  id               Int             @id @default(autoincrement())
+  veiculoId        Int
+  veiculo          Veiculo         @relation(fields: [veiculoId], references: [id])
+
+  motoristaId      Int?
+  motorista        Motorista?      @relation(fields: [motoristaId], references: [id], onDelete: SetNull)
+
+  data             DateTime
+  tipo             String?
+  descricao        String?
+  custo            Decimal?
+
+  kmAtual          Int?
+  kmProximaTroca   Int?
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  hashImportacao   String?         @unique
+
+  @@index([veiculoId, data])
+  @@index([kmProximaTroca])
+}
+
+model Despesa {
+  id             Int               @id @default(autoincrement())
+  veiculoId      Int
+  veiculo        Veiculo           @relation(fields: [veiculoId], references: [id])
+
+  motoristaId    Int?
+  motorista      Motorista?        @relation(fields: [motoristaId], references: [id], onDelete: SetNull)
+
+  viagemId       Int?
+  viagem         Viagem?           @relation(fields: [viagemId], references: [id], onDelete: SetNull)
+
+  data           DateTime
+  categoria      String?
+  descricao      String?
+  valor          Decimal
+
+  status         TransacaoStatus   @default(PENDENTE)
+  dataPagamento  DateTime?
+  meioPagamento  String?
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  hashImportacao String?           @unique
+
+  @@index([veiculoId, data])
+  @@index([motoristaId, data])
+  @@index([viagemId])
+  @@index([status])
+}
+
+model Motorista {
+  id             Int          @id @default(autoincrement())
+  nome           String
+  cpf            String       @unique
+  cnh            String
+  validadeCnh    DateTime
+  createdAt      DateTime     @default(now())
+
+  fretes         Frete[]
+  abastecimentos Abastecimento[]
+  despesas       Despesa[]
+  manutencoes    Manutencao[]
+  viagens        Viagem[]
+}
+
+model Viagem {
+  id             Int          @id @default(autoincrement())
+  descricao      String
+  dataInicio     DateTime
+  dataFim        DateTime?
+
+  veiculoId      Int
+  veiculo        Veiculo      @relation(fields: [veiculoId], references: [id])
+
+  motoristaId    Int
+  motorista      Motorista    @relation(fields: [motoristaId], references: [id])
+
+  fretes         Frete[]
+  abastecimentos Abastecimento[]
+  despesas       Despesa[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([veiculoId, dataInicio])
+  @@index([motoristaId, dataInicio])
+}
+
+model Pneu {
+  id             Int                 @id @default(autoincrement())
+  numSerie       String              @unique
+  marca          String
+  modelo         String?
+  dataCompra     DateTime
+  valorCompra    Decimal
+  status         PneuStatus          @default(NOVO)
+
+  movimentacoes  MovimentacaoPneu[]
+
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([status])
+}
+
+model MovimentacaoPneu {
+  id          Int                @id @default(autoincrement())
+
+  pneuId      Int
+  pneu        Pneu               @relation(fields: [pneuId], references: [id], onDelete: Cascade)
+
+  veiculoId   Int?
+  veiculo     Veiculo?           @relation(fields: [veiculoId], references: [id], onDelete: SetNull)
+
+  data        DateTime
+  kmVeiculo   Int
+  tipo        MovimentacaoPneuTipo
+  posicao     PosicaoPneu?
+
+  createdAt   DateTime           @default(now())
+
+  @@index([pneuId, data])
+  @@index([veiculoId, data])
+  @@index([tipo])
+}
+
+model Documento {
+  id              Int            @id @default(autoincrement())
+
+  veiculoId       Int
+  veiculo         Veiculo        @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+
+  tipo            DocumentoTipo
+  descricao       String?
+  dataVencimento  DateTime
+
+  createdAt       DateTime       @default(now())
+
+  @@index([dataVencimento])
+  @@index([veiculoId, dataVencimento])
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  passwordHash      String
+  role              Role      @default(motorista)
+  motoristaId       Int?
+  refreshTokenHash  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  auditLogs         AuditLog[]
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  Int?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  correlationId String?
+  @@index([createdAt])
+}

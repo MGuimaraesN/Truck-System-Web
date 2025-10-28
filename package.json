@@ -1,0 +1,26 @@
+{
+  "name": "truck-system-web",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "apps/worker"
+  ],
+  "scripts": {
+    "dev": "docker compose up --build",
+    "build": "turbo run build",
+    "start": "docker compose up",
+    "lint": "turbo run lint",
+    "format": "prettier --write .",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "migrate": "npm --workspace apps/api run migrate",
+    "seed": "npm --workspace apps/api run seed",
+    "import:excel": "npm --workspace apps/api run import:excel"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "turbo": "^2.2.3"
+  }
+}
