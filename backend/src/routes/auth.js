@@ -1,10 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const { z } = require('zod');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 const userSchema = z.object({

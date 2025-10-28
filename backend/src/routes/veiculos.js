@@ -1,9 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/prisma');
 const authMiddleware = require('../middleware/auth');
 const { z } = require('zod');
 
-const prisma = new PrismaClient();
 const router = express.Router();
 
 const veiculoSchema = z.object({

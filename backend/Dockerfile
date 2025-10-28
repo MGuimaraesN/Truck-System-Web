@@ -24,9 +24,12 @@ RUN npx prisma generate
 # Copia o restante do código-fonte do backend
 COPY . .
 
+# Compila o código TypeScript para JavaScript
+RUN npm run build
+
 # Expõe a porta que o servidor Node vai usar
 EXPOSE 5000
 
 # Comando para rodar as migrações E iniciar o servidor
 # Isso garante que o banco de dados esteja pronto antes do app iniciar
-CMD ["sh", "-c", "npx prisma migrate deploy && node src/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js && node dist/src/server.js"]

@@ -16,6 +16,7 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String // Armazenar hash
+  role      String   @default("user")
   createdAt DateTime @default(now())
 }
 
