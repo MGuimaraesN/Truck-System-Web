@@ -1,28 +1,34 @@
 import { create } from 'zustand';
 
-interface User {
-  id: number;
-  role: string;
-}
+import type { components } from '@/api/generated';
 
-interface AuthState {
-  accessToken: string | null;
-  refreshToken: string | null;
+type AuthTokens = components['schemas']['AuthTokens'];
+type User = AuthTokens['user'];
+
+type Credentials = {
+  accessToken: AuthTokens['accessToken'] | null;
+  refreshToken: AuthTokens['refreshToken'] | null;
   user: User | null;
-  setCredentials: (data: { accessToken: string; refreshToken: string; user: User }) => void;
+};
+
+interface AuthState extends Credentials {
+  setCredentials: (data: AuthTokens) => void;
   clear: () => void;
 }
 
 const STORAGE_KEY = 'frota-auth';
 
+const emptyCredentials: Credentials = { accessToken: null, refreshToken: null, user: null };
+
 const initial = (() => {
-  if (typeof window === 'undefined') return { accessToken: null, refreshToken: null, user: null };
+  if (typeof window === 'undefined') return emptyCredentials;
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return { accessToken: null, refreshToken: null, user: null };
+  if (!raw) return emptyCredentials;
   try {
-    return JSON.parse(raw) as { accessToken: string; refreshToken: string; user: User };
-  } catch (error) {
-    return { accessToken: null, refreshToken: null, user: null };
+    const parsed = JSON.parse(raw) as AuthTokens;
+    return { accessToken: parsed.accessToken, refreshToken: parsed.refreshToken, user: parsed.user } satisfies Credentials;
+  } catch {
+    return emptyCredentials;
   }
 })();
 
@@ -31,11 +37,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   refreshToken: initial.refreshToken,
   user: initial.user ?? null,
   setCredentials: ({ accessToken, refreshToken, user }) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ accessToken, refreshToken, user }));
+    const payload: AuthTokens = { accessToken, refreshToken, user };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     set({ accessToken, refreshToken, user });
   },
   clear: () => {
     localStorage.removeItem(STORAGE_KEY);
-    set({ accessToken: null, refreshToken: null, user: null });
+    set(emptyCredentials);
   },
 }));

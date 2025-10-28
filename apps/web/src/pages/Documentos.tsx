@@ -1,21 +1,31 @@
-import { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from 'antd/es/table';
 
-import { ResourceTable } from '@/components/ResourceTable';
+import type { components } from '@/api/generated';
+import { ResourceTable, type FormField } from '@/components/ResourceTable';
 
-const columns: ColumnsType<any> = [
+type Documento = components['schemas']['Documento'];
+type DocumentoInput = components['schemas']['DocumentoInput'];
+
+const columns: ColumnsType<Documento> = [
   { title: 'Tipo', dataIndex: 'tipo', key: 'tipo' },
   { title: 'Descrição', dataIndex: 'descricao', key: 'descricao' },
   { title: 'Vencimento', dataIndex: 'dataVencimento', key: 'dataVencimento' },
 ];
 
-const formFields = [
-  { name: 'veiculoId', label: 'Veículo ID', component: 'number' as const },
-  { name: 'tipo', label: 'Tipo' },
-  { name: 'dataVencimento', label: 'Data de vencimento' },
+const formFields: FormField<DocumentoInput>[] = [
+  { name: 'veiculoId', label: 'Veículo', component: 'number', required: true },
+  { name: 'tipo', label: 'Tipo', required: true },
+  { name: 'descricao', label: 'Descrição' },
+  { name: 'dataVencimento', label: 'Data de vencimento', required: true },
 ];
 
 const DocumentosPage = () => (
-  <ResourceTable resource="documentos" title="Novo documento" columns={columns} formFields={formFields} />
+  <ResourceTable<Documento, DocumentoInput>
+    resource="documentos"
+    title="Novo documento"
+    columns={columns}
+    formFields={formFields}
+  />
 );
 
 export default DocumentosPage;

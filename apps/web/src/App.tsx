@@ -1,19 +1,19 @@
 import { Layout, Menu } from 'antd';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
-import DashboardPage from '@/pages/Dashboard';
-import FretesPage from '@/pages/Fretes';
 import AbastecimentosPage from '@/pages/Abastecimentos';
-import ManutencoesPage from '@/pages/Manutencoes';
+import AlertasPage from '@/pages/Alertas';
+import DashboardPage from '@/pages/Dashboard';
 import DespesasPage from '@/pages/Despesas';
+import DocumentosPage from '@/pages/Documentos';
+import FretesPage from '@/pages/Fretes';
+import LoginPage from '@/pages/Login';
+import ManutencoesPage from '@/pages/Manutencoes';
 import MotoristasPage from '@/pages/Motoristas';
+import PneusPage from '@/pages/Pneus';
 import VeiculosPage from '@/pages/Veiculos';
 import ViagensPage from '@/pages/Viagens';
-import PneusPage from '@/pages/Pneus';
-import DocumentosPage from '@/pages/Documentos';
-import AlertasPage from '@/pages/Alertas';
-import LoginPage from '@/pages/Login';
 import { useAuthStore } from '@/store/auth';
 
 const { Header, Content, Sider } = Layout;
