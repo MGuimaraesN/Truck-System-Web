@@ -1,35 +1,38 @@
-# ./backend/Dockerfile
-
-# PASSO 1: Usar a imagem base Debian 11 (bullseye), que usa OpenSSL 1.1.x
-FROM public.ecr.aws/docker/library/node:18-bullseye-slim
-
-# Instala dependências essenciais (incluindo o cliente sqlite3)
-RUN apt-get update && apt-get install -y openssl sqlite3
-
-# Define o diretório de trabalho
+# -------- Base de execução (leve) --------
+FROM node:20-alpine AS base
 WORKDIR /app
+# Prisma precisa de openssl (presente no alpine, mas garantimos)
+RUN apk add --no-cache openssl
+ENV NODE_ENV=production
 
-# Copia os arquivos de dependência
+# -------- Dependências --------
+FROM base AS deps
+# Se você tiver lockfile, copie ele; caso contrário, package.json
 COPY package*.json ./
+RUN npm ci --omit=dev
 
-# Instala as dependências
-RUN npm install
-
-# Copia o schema do Prisma primeiro
-COPY prisma ./prisma/
-
-# Gera o Prisma Client (agora usando o OpenSSL 1.1.x da imagem)
+# -------- Build (se tiver TypeScript) --------
+FROM base AS build
+COPY package*.json ./
+RUN npm ci
+COPY prisma ./prisma
 RUN npx prisma generate
-
-# Copia o restante do código-fonte do backend
 COPY . .
+# Se o backend for TS, descomente a linha abaixo e garanta script "build" no package.json
+# RUN npm run build
 
-# Compila o código TypeScript para JavaScript
-RUN npm run build
+# -------- Runner --------
+FROM base AS runner
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY prisma ./prisma
+COPY . .
+# Se compilado (TS), copie /dist e ajuste o CMD no entrypoint para usar "node dist/..."
+# COPY --from=build /app/dist ./dist
 
-# Expõe a porta que o servidor Node vai usar
+# Entrypoint aplica migração/seed e sobe o servidor
+COPY ./entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 5000
-
-# Comando para rodar as migrações E iniciar o servidor
-# Isso garante que o banco de dados esteja pronto antes do app iniciar
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js && node dist/src/server.js"]
+CMD ["sh", "/app/entrypoint.sh"]

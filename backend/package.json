@@ -7,8 +7,10 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed": "ts-node prisma/seed.ts",
-    "build": "tsc"
+    "seed": "node prisma/seed.js",
+    "build": "tsc",
+    "prisma:migrate": "prisma migrate deploy && prisma generate",
+    "backfill:km-anterior": "node scripts/backfill-km-anterior.js"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +33,6 @@
     "tsx": "^4.20.6"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   }
 }
