@@ -1,8 +1,12 @@
-import { ColumnsType } from 'antd/es/table';
+import type { ColumnsType } from 'antd/es/table';
 
-import { ResourceTable } from '@/components/ResourceTable';
+import type { components } from '@/api/generated';
+import { ResourceTable, type FormField } from '@/components/ResourceTable';
 
-const columns: ColumnsType<any> = [
+type Despesa = components['schemas']['Despesa'];
+type DespesaInput = components['schemas']['DespesaInput'];
+
+const columns: ColumnsType<Despesa> = [
   { title: 'Data', dataIndex: 'data', key: 'data' },
   { title: 'Categoria', dataIndex: 'categoria', key: 'categoria' },
   { title: 'Descrição', dataIndex: 'descricao', key: 'descricao' },
@@ -10,15 +14,26 @@ const columns: ColumnsType<any> = [
   { title: 'Status', dataIndex: 'status', key: 'status' },
 ];
 
-const formFields = [
-  { name: 'veiculoId', label: 'Veículo ID', component: 'number' as const },
-  { name: 'data', label: 'Data' },
+const formFields: FormField<DespesaInput>[] = [
+  { name: 'veiculoId', label: 'Veículo', component: 'number', required: true },
+  { name: 'data', label: 'Data', required: true },
+  { name: 'categoria', label: 'Categoria' },
   { name: 'descricao', label: 'Descrição' },
-  { name: 'valor', label: 'Valor', component: 'number' as const },
+  { name: 'valor', label: 'Valor', component: 'number', required: true },
+  {
+    name: 'status',
+    label: 'Status',
+    component: 'select',
+    options: [
+      { label: 'Pendente', value: 'PENDENTE' },
+      { label: 'Pago', value: 'PAGO' },
+      { label: 'Recebido', value: 'RECEBIDO' },
+    ],
+  },
 ];
 
 const DespesasPage = () => (
-  <ResourceTable resource="despesas" title="Nova despesa" columns={columns} formFields={formFields} />
+  <ResourceTable<Despesa, DespesaInput> resource="despesas" title="Nova despesa" columns={columns} formFields={formFields} />
 );
 
 export default DespesasPage;
