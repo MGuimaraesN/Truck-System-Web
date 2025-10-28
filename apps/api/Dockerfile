@@ -16,8 +16,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/turbo.json ./turbo.json
-COPY prisma ./prisma             # <-- Verifique este caminho
-COPY apps ./apps                 # <-- Verifique este caminho
+COPY prisma ./prisma
+COPY apps ./apps
 RUN npx prisma generate
 RUN npm run build --workspace api
 
