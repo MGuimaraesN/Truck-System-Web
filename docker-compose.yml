@@ -1,7 +1,12 @@
-version: "3.9"
+# docker-compose.yml
+
+# Remova esta linha -> version: "3.9"
+
 services:
   api:
-    build: ./apps/api
+    build:
+      context: . # <-- Adicione esta linha
+      dockerfile: apps/api/Dockerfile # <-- Adicione esta linha
     env_file: .env
     environment:
       - DATABASE_URL=${DATABASE_URL:-file:/data/dev.db}
@@ -13,17 +18,21 @@ services:
       - sqlite_data:/data
       - ./data/input:/data/input
     depends_on: []
-    profiles: ["sqlite"]
+    # profiles: ["sqlite"] # <-- Linha removida/comentada
 
   web:
-    build: ./apps/web
+    build:
+      context: . # <-- Adicione esta linha
+      dockerfile: apps/web/Dockerfile # <-- Adicione esta linha
     ports:
       - "5173:80"
     depends_on:
       - api
 
   worker:
-    build: ./apps/worker
+    build:
+      context: . # <-- Adicione esta linha
+      dockerfile: apps/worker/Dockerfile # <-- Adicione esta linha
     env_file: .env
     environment:
       - DATABASE_URL=${DATABASE_URL:-file:/data/dev.db}
