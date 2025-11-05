@@ -18,6 +18,7 @@ model User {
   password  String // Armazenar hash
   role      String   @default("user")
   createdAt DateTime @default(now())
+  veiculos  Veiculo[]
 }
 
 // Modelo central da frota
@@ -28,6 +29,9 @@ model Veiculo {
   ano       Int?
   apelido   String? // Ex: "Caminhão Principal"
   createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
 
   // Relacionamentos
   fretes         Frete[]
