@@ -1,0 +1,95 @@
+// ./backend/prisma/schema.prisma
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+// ATUALIZADO PARA SQLITE
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL") // Ex: "file:/app/prisma/data.db"
+}
+
+// Modelo para autenticação
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String // Armazenar hash
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+}
+
+// Modelo central da frota
+model Veiculo {
+  id        Int      @id @default(autoincrement())
+  placa     String   @unique // Ex: "ABC-1234"
+  modelo    String? // Ex: "Scania R450"
+  ano       Int?
+  apelido   String? // Ex: "Caminhão Principal"
+  createdAt DateTime @default(now())
+
+  // Relacionamentos
+  fretes         Frete[]
+  abastecimentos Abastecimento[]
+  manutencoes    Manutencao[]
+  despesas       Despesa[]
+}
+
+// Baseado em "Frete.xlsx - Frete.csv"
+model Frete {
+  id          Int       @id @default(autoincrement())
+  data        DateTime
+  notaFiscal  String?
+  origem      String
+  destino     String
+  valorBruto  Decimal // Valor total do frete
+  comissao    Decimal? // Comissão
+  pesoKg      Decimal?
+  observacoes String?
+  createdAt   DateTime  @default(now())
+
+  veiculo   Veiculo @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+  veiculoId Int
+}
+
+// Baseado em "Frete.xlsx - Abastecimento.csv"
+model Abastecimento {
+  id          Int      @id @default(autoincrement())
+  data        DateTime
+  posto       String
+  cidade      String
+  kmAtual     Int // Quilometragem no momento do abastecimento
+  valorDiesel Decimal // Preço por litro
+  litros      Decimal
+  valorTotal  Decimal // Custo total
+  createdAt   DateTime @default(now())
+
+  veiculo   Veiculo @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+  veiculoId Int
+}
+
+// Baseado em "Frete.xlsx - Troca De Oleo e Filtros.csv"
+model Manutencao {
+  id             Int       @id @default(autoincrement())
+  data           DateTime
+  descricao      String // Ex: "Troca Kit Motor, Oleo 15W-40 e Filtro"
+  km             Int // KM em que a manutenção foi feita
+  kmProximaTroca Int? // KM da próxima manutenção agendada
+  createdAt      DateTime  @default(now())
+
+  veiculo   Veiculo @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+  veiculoId Int
+}
+
+// Baseado em "Frete.xlsx - Despesas.csv"
+model Despesa {
+  id        Int      @id @default(autoincrement())
+  data      DateTime
+  descricao String // Ex: "Borracharia (Calibragem)", "Pedágio"
+  valor     Decimal
+  createdAt DateTime @default(now())
+
+  veiculo   Veiculo @relation(fields: [veiculoId], references: [id], onDelete: Cascade)
+  veiculoId Int
+}

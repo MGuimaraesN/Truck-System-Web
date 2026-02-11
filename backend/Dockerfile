@@ -1,24 +1,35 @@
-# Use uma imagem base do Node.js leve e oficial
-FROM node:20-alpine
+# ./backend/Dockerfile
 
-# Defina o diretório de trabalho dentro do container
+# PASSO 1: Usar a imagem base Debian 11 (bullseye), que usa OpenSSL 1.1.x
+FROM public.ecr.aws/docker/library/node:18-bullseye-slim
+
+# Instala dependências essenciais (incluindo o cliente sqlite3)
+RUN apt-get update && apt-get install -y openssl sqlite3
+
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copie os ficheiros de manifesto de pacotes e instale as dependências
-# Copiar package-lock.json garante instalações consistentes
+# Copia os arquivos de dependência
 COPY package*.json ./
 
-# Instale TODAS as dependências, incluindo as de desenvolvimento como o nodemon,
-# que são necessárias para o script "dev"
+# Instala as dependências
 RUN npm install
 
-# Copie o resto do código da aplicação para o diretório de trabalho
+# Copia o schema do Prisma primeiro
+COPY prisma ./prisma/
+
+# Gera o Prisma Client (agora usando o OpenSSL 1.1.x da imagem)
+RUN npx prisma generate
+
+# Copia o restante do código-fonte do backend
 COPY . .
 
-# A porta que a aplicação vai expor.
-# O mapeamento real é feito no docker-compose.yml
-EXPOSE 5200
+# Compila o código TypeScript para JavaScript
+RUN npm run build
 
-# O comando para iniciar a aplicação é definido no docker-compose.yml
-# para permitir flexibilidade (ex: usar 'npm run dev' em dev e 'npm start' em prod).
-# CMD ["npm", "run", "dev"]
+# Expõe a porta que o servidor Node vai usar
+EXPOSE 5000
+
+# Comando para rodar as migrações E iniciar o servidor
+# Isso garante que o banco de dados esteja pronto antes do app iniciar
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js && node dist/src/server.js"]
